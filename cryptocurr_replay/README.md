@@ -116,7 +116,7 @@ loopLoadTick(tb, "/hdd/data/tick-processed")
 
 #### 5. 使用数据回放界面
 
-* 使用数据回放界面，还需要下载回放的界面[html文件](https://www.github.com/dolphindb/cases/)，将下载的解压包部署到dolphindb的web根目录下，通过`http://[host]:[port]/replay.html` 进入数据回放界面。
+* 使用数据回放界面，还需要下载回放的界面[html文件压缩包](https://github.com/dolphindb/applications/raw/master/cryptocurr_replay/replay.zip)，将下载的解压包部署到dolphindb的web根目录下，通过`http://[host]:[port]/replay.html` 进入数据回放界面。
 * 数据回访界面主要包含`回放`和 `点查询`两个功能。
 * 回放： 按照设置的产品代码，时间段，按照指定速率值回放时间段内的数据，回放数据包含盘口数据和实时交易数据。回放可以设置的参数主要是三个：
     *  产品代码： 加密货币产品代码
