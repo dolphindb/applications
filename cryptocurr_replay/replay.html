@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Cryptocurrency Tick Data Replay (Huobi Research & DolphinDB)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DolphinDB Node Management">
+    <meta name="author" content="DolphinDB">
+    <link rel="stylesheet" href="third-party/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/custom-theme/jquery-ui.css">
+    <link rel="stylesheet" href="third-party/bootstrap/css/font-awesome.min.css">
+    <link rel="stylesheet" href="third-party/bootstrap/css/docs.css">
+    <link rel="stylesheet" href="third-party/bootstrap/js/google-code-prettify/prettify.css">
+
+    <link rel="apple-touch-icon-precomposed" sizes="144x144"
+        href="third-party/bootstrap/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114"
+        href="third-party/bootstrap/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72"
+        href="third-party/bootstrap/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="third-party/bootstrap/ico/apple-touch-icon-57-precomposed.png">
+
+    <link rel="shortcut icon" href="third-party/bootstrap/ico/logo.png">
+    <link href="third-party/jsgrid/jsgrid.css" rel="stylesheet" />
+    <link href="third-party/jsgrid/jsgrid-theme.css" rel="stylesheet" />
+    <style>
+        .toolbar_auto {
+            display: table-cell;
+            width: auto;
+            color: #333;
+        }
+
+        .jsgrid-header-title {
+            padding: .1em .1em
+        }
+
+        .jsgrid-cell {
+            padding: .2em .2em
+        }
+
+        .navbar-text {
+            float: left;
+            margin-top: 4px;
+            margin-bottom: 2px;
+        }
+
+        img {
+            box-shadow: 10px 10px 10px rgba(0, 0, 0, .5);
+            -moz-box-shadow: 10px 10px 10px rgba(0, 0, 0, .5);
+            -webkit-box-shadow: 10px 10px 10px rgba(0, 0, 0, .5);
+        }
+
+        .red-font {
+            color: red
+        }
+
+        .green-font {
+            color: forestgreen
+        }
+    </style>
+</head>
+
+<body data-spy="scroll" data-target=".bs-docs-sidebar" data-twttr-rendered="true">
+    <header class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" id="link-to-controller" style="color: white">Cryptocurrency Tick Data Replay
+                    (Huobi Research & DolphinDB)</a>
+            </div>
+            <nav class="navbar-collapse collapse navbar-right">
+                <p class="navbar-text navbar-right">
+                    <img src="images/hb.png" height="42" title="Huobi Research">
+                    <img src="images/ddb.png" height="42" title="DolphinDB">
+                </p>
+            </nav>
+        </div>
+
+    </header>
+    <div class="container-fluid" id="layout">
+        <div class="row">
+            <div class="col-ms-12">
+                <div class="panel-body">
+                    <div class="btn-toolbar" role="toolbar" aria-label="...">
+                        <div class="btn-group" role="group" aria-label="...">
+                            <button type="button" class="btn btn-default" id="btn_run" title="start replay">
+                                <span class="glyphicon glyphicon-play"></span>
+                            </button>
+                            <button type="button" class="btn btn-default" id="btn_stop" title="stop replay"
+                                style="margin-left:1px;" disabled=true>
+                                <span class="glyphicon glyphicon-stop"></span>
+                            </button>
+                        </div>
+                        <div class="input-group" role="group" aria-label="...">
+                            <div class="input-group-addon toolbar_auto">Product</div>
+                            <input class="form-control toolbar_auto" id="txtProduct" type="text" value="BTCUSDT"
+                                placeholder="type product">
+                            <div class="input-group-addon toolbar_auto" style="width:auto">Replay Rate</div>
+                            <input class="form-control toolbar_auto" id="txtRate" type="text" value="1000"
+                                placeholder="rate for replay">
+                            <div class="input-group-addon toolbar_auto">Start Time</div>
+                            <input class="form-control toolbar_auto" id="txtDateTime" type="text"
+                                value="2018.09.17 00:00:00">
+                            <div class="input-group-addon toolbar_auto">Length</div>
+                            <input class="form-control toolbar_auto" id="txtDuration" type="text" value="60">
+                            <span class="input-group-addon">minutes</span>
+                        </div>
+                        <div class="input-group" role="group" aria-label="...">
+
+                        </div>
+                        <div class="input-group" role="group" aria-label="...">
+
+                        </div>
+                        <div class="input-group" role="group" aria-label="...">
+
+                        </div>
+                        <div class="input-group" role="group" aria-label="...">
+
+                        </div>
+                        <div class="btn-group" role="group" aria-label="...">
+                            <input class="form-control" id="txtScript" type="hidden" value="
+                                            def copySchema(tbObj){
+                                                sch = select name,typeString as type from  tbObj.schema().colDefs;
+                                                return streamTable(100:0, sch.name, sch.type);
+                                            }
+                                            
+                                            login('admin', '123456');
+                                            tick = loadTable('dfs://huobiDB', 'tick');
+                                            orderbook = loadTable('dfs://huobiDB', 'orderBook');
+                                            
+                                            share  copySchema(orderbook) as outOrder;
+                                            share copySchema(tick) as outTick;
+                                            enableTablePersistence(outOrder, true,true, 100000);
+                                            enableTablePersistence(outTick, true,true, 100000);
+                                            clearTablePersistence(outOrder);
+                                            clearTablePersistence(outTick);
+                                            
+                                            share copySchema(orderbook) as outOrder;
+                                            share copySchema(tick) as outTick;
+                                            enableTablePersistence(outOrder, true,true, 100000);
+                                            enableTablePersistence(outTick, true,true, 100000);
+                                            
+                                            def replayData(tick , orderbook,rate ){
+                                                endTime = exec max(server_time) from tick where [filter_tick_product]
+                                                sqlTick = <select * from tick where [filter_tick_product]>;
+                                                sqlOrder = <select * from orderbook where [filter_order_product]>;
+                                                trs = cutPoints([cutString]);
+                                                rds = replayDS(sqlTick, `server_time , , trs);
+                                                rds2 = replayDS(sqlOrder,`server_time , , trs);
+                                                return submitJob('replay_huobi','replay_huobi',  replay,  [rds,rds2],  [`outTick,`outOrder],`server_time ,, rate);
+                                            }" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="panel-body">
+                <div class="col-md-6">
+                    <input class="form-control" id="txtgrid1" type="hidden"
+                        value="select top 1 *,time(server_time) as time from outOrder order by server_time desc"
+                        style="height:32px">
+                    <div id="jsgrid1"></div>
+                </div>
+                <div class="col-md-3">
+                    <input class="form-control" id="txtgrid2" type="hidden"
+                        value="select top 10 time(server_time) as trade_time, price as sell_price,amount from outTick where buy_or_sell = 's' order by server_time desc"
+                        style="height:32px">
+                    <div id="jsgrid2"></div>
+                </div>
+                <div class="col-md-3">
+                    <input class="form-control" id="txtgrid3" type="hidden"
+                        value="select top 10 time(server_time) as trade_time, price as buy_price,amount from outTick where buy_or_sell = 'b' order by server_time desc"
+                        style="height:32px">
+                    <div id="jsgrid3"></div>
+                </div>
+            </div>
+        </div>
+        <div class="row" id="chartContainer">
+            <div class="col-md-12">
+                <div id="echartMain" style="width: 100%;height:360px;"></div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer================================================== -->
+    <footer class="bs-footer hide" style="width:100%;position:fixed;bottom:0px;left:0px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 col-sm-12">
+                    <ul class="list-unstyled">
+                        <li>CopyRight &copy;
+                            <a href="http://www.dolphindb.com">
+                                <strong class="text-info">DolphinDB</strong>
+
+                            </a> 2016 - 2019</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="third-party/bootstrap/js/vendor/jquery-1.9.1.min.js" type="text/javascript"></script>
+    <script src="third-party/bootstrap/js/vendor/jquery-migrate-1.2.1.min.js" type="text/javascript"></script>
+    <script src="third-party/bootstrap/js/vendor/bootstrap.js" type="text/javascript"></script>
+    <script src="third-party/bootstrap/js/vendor/jquery-ui-1.10.3.custom.min.js" type="text/javascript"></script>
+    <script src="third-party/jquery-tmpl/jquery.tmpl.min.js" type="text/javascript"></script>
+    <script src="third-party/bootstrap/js/vendor/jquery.cookie.js" type="text/javascript"></script>
+    <script src="third-party/jsgrid/jsgrid.js" type="text/javascript"></script>
+    <script src="js/datagrid.js" type="text/javascript"></script>
+    <script src="js/executecode.js" type="text/javascript"></script>
+    <script src="js/CallWebApi.js" type="text/javascript"></script>
+    <script src="js/dolphinApi.js" type="text/javascript"></script>
+    <script src="js/utils.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/4.2.1/echarts-en.common.js"></script>
+</body>
+<script lang="javascript">
+
+    nodeUrl = GetFullUrl(window.location.host);
+    function fillData(sql, gridid, opt) {
+        var executecode = new CodeExecutor(nodeUrl);
+        var grid = $('#' + gridid);
+        executecode.run(sql, function (re) {
+            var dg = new DolphinGrid(grid, opt);
+            var g = re.object[0];
+            var cols = dg.loadCols(g);
+            dg.loadFromJson(DolphinResult2Grid(re), false, cols);
+        })
+    }
+
+
+    function fillGrid() {
+        var sql1 = "t1=select top 1 *,time(server_time) as time from outOrder order by server_time desc;";
+        var sql2 = "t2=select top 10 time(server_time) as trade_time, price as sell_price,amount from outTick where buy_or_sell = 's' order by server_time desc;";
+        var sql3 = "t3=select top 10 time(server_time) as trade_time, price as buy_price, amount from outTick where buy_or_sell = 'b' order by server_time desc;";
+        var sql4 = "[t1,t2,t3]";
+        var sql = sql1 + sql2 + sql3 + sql4;
+        var executecode = new CodeExecutor(nodeUrl);
+        executecode.run(sql, function (re) {
+            tb1 = re.object[0].value[0];
+            tb2 = re.object[0].value[1];
+            tb3 = re.object[0].value[2];
+            fillGrid1(tb1);
+            fillGrid2(tb2);
+            fillGrid3(tb3);
+        });
+    }
+
+
+    function fillHistoryGrid(ts) {
+        
+        var productCode = $("#txtProduct").val();
+
+        var sql0 = "login('admin','123456');";
+        var sql1 = "t1=select top 1 *,time(server_time) as time from loadTable('dfs://huobiDB','orderBook') where product='" + productCode + "', server_time< " + ts + " order by server_time desc;";
+        var sql2 = "t2=select top 10 time(server_time) as trade_time, price as sell_price,amount from loadTable('dfs://huobiDB','tick') where buy_or_sell = 's', product='" + productCode + "', server_time< " + ts + " order by server_time desc;";
+        var sql3 = "t3=select top 10 time(server_time) as trade_time, price as buy_price, amount from loadTable('dfs://huobiDB','tick') where buy_or_sell = 'b', product='" + productCode + "', server_time< " + ts + " order by server_time desc;";
+        var sql4 = "[t1,t2,t3]";
+        var sql = sql0 + sql1 + sql2 + sql3 + sql4;
+        var executecode = new CodeExecutor(nodeUrl);
+        executecode.run(sql, function (re) {
+            tb1 = re.object[0].value[0];
+            tb2 = re.object[0].value[1];
+            tb3 = re.object[0].value[2];
+            //bind order t1
+            fillGrid1(tb1);
+            fillGrid2(tb2);
+            fillGrid3(tb3);
+        });
+    }
+
+
+    function fillGrid1(tb) {
+        var rows = [];
+        if (tb.size == "0") return rows;
+        //select top 1 *,second(server_time) as time from outOrder order by server_time desc
+        var server_time = tb.value[1].value[0];
+        for (var i = 0; i < 10; i++) {
+            var buy_price_index = i + 2;
+            var sell_price_index = i + 22;
+            var buy_amount_index = i + 42;
+            var sell_amount_index = i + 62;
+            var row = {};
+            row.NO = i + 1;
+            row.book_time = tb.value[83].value[0];
+            row.buy_price = tb.value[buy_price_index].value[0];
+            row.buy_amount = tb.value[buy_amount_index].value[0];
+            row.sell_price = tb.value[sell_price_index].value[0];
+            row.sell_amount = tb.value[sell_amount_index].value[0];
+            rows.push(row);
+        }
+        var grid = $("#jsgrid1")
+        var dg = new DolphinGrid(grid);
+        var cols = [
+            { name: "NO", width: 80, title: "level", type: 'text' },
+            { name: "book_time", width: 80, title: "book_time", type: 'text' },
+            { name: "buy_price", width: 80, css: "green-font", title: "buy_price", type: 'number' },
+            { name: "buy_amount", width: 80, css: "green-font", title: "buy_amount", type: 'number' },
+            { name: "sell_price", width: 80, css: "red-font", title: "sell_price", type: 'number' },
+            { name: "sell_amount", width: 80, css: "red-font", title: "sell_amount", type: 'number' },
+        ];
+        dg.loadFromJson(rows, false, cols);
+    }
+
+    function fillGrid2(tb) {
+
+        var grid = $("#jsgrid2")
+        var dg2 = new DolphinGrid(grid);
+        var cols = [
+            { name: "trade_time", width: 80, title: "trade_time", type: 'text' },
+            { name: "sell_price", width: 80, css: "red-font", title: "sell_price", type: 'number' },
+            { name: "amount", width: 80, css: "red-font", title: "amount", type: 'number' }
+        ];
+        dg2.loadFromJson(VectorArray2Table(tb.value), false, cols);
+    }
+
+    function fillGrid3(tb) {
+
+        var grid = $("#jsgrid3")
+        var dg3 = new DolphinGrid(grid);
+        var cols = [
+            { name: "trade_time", width: 80, title: "trade_time", type: 'text' },
+            { name: "buy_price", width: 80, css: "green-font", title: "buy_price", type: 'number' },
+            { name: "amount", width: 80, css: "green-font", title: "amount", type: 'number' }
+        ]
+        dg3.loadFromJson(VectorArray2Table(tb.value), false, cols);
+    }
+    function getTimeData(arr, arrAmount, re) {
+        var table = re.object[0].value;
+        var count = parseInt(re.object[0].size);
+        // console.log("get rows " + count.toString());
+        for (var i = 0; i < count; i++) {
+            if (typeof (table[0].value[i]) != "undefined") {
+                var d = new Date(table[1].value[i]);
+                arr.push({ name: d.Format("yyyy/MM/dd hh:mm:ss"), value: [d.Format("yyyy/MM/dd hh:mm:ss"), table[2].value[i]] });
+                arrAmount.push({ name: d.Format("yyyy/MM/dd hh:mm:ss"), value: [d.Format("yyyy/MM/dd hh:mm:ss"), table[3].value[i]] });
+                currentTimeStamp = table[1].value[i];
+            }
+
+        }
+    }
+
+    var data = [];
+    var amount = [];
+    var currentTimeStamp = $("#txtDateTime").val();
+    var anchor;
+    function fillChart(chart) {
+        if (typeof (currentTimeStamp) == "undefined")
+            currentTimeStamp = $("#txtDateTime").val();
+       
+        var sql = "select server_time as second_time,server_time, price as buy_price, amount from outTick where server_time>" + currentTimeStamp;
+
+        $("#txtServerTime").val(currentTimeStamp);
+
+        var executecode = new CodeExecutor(nodeUrl);
+        executecode.run(sql, function (re) {
+            getTimeData(data, amount, re);
+            chart.setOption({
+                    series: [{
+                        data: data
+                    },
+                    {
+                        data: amount
+                    },
+                    {
+                        name: "anchor",
+                        data: anchor
+                    }]
+            });
+        });
+    }
+    var isFinished = true;
+    $(document).ready(function () {
+
+        var dstart = new Date($("#txtDateTime").val());
+        var duration = $("#txtDuration").val();
+        var min = parseInt(duration);
+        dend = dateAdd(dstart, "minute", min);
+
+        var orderTimer;
+        var buyTickTimer;
+        var sellTickTimer;
+        var chartTimer;
+        var gridTimer;
+        var currentJobId = ""
+        var myChart;
+        //cancel replay job when page unload
+        $(window).bind("beforeunload", function () {
+            var executecode = new CodeExecutor(nodeUrl);
+            executecode.run("cancelJob('" + currentJobId + "')", function (re) { });
+        });
+
+        $("#btn_run").bind("click", function () {
+            isFinished = false;
+            dstart = new Date($("#txtDateTime").val());
+            var duration = $("#txtDuration").val();
+            var min = parseInt(duration);
+            dend = dateAdd(dstart, "minute", min);
+            var cutNumber = (parseInt(min) * 60) / 20
+            anchor = [
+                { name: dstart.Format("yyyy/MM/dd hh:mm:ss"), value: [dstart.Format("yyyy/MM/dd hh:mm:ss"), 0] },
+                { name: dend.Format("yyyy/MM/dd hh:mm:ss"), value: [dend.Format("yyyy/MM/dd hh:mm:ss"), 0] }
+            ];
+            var executecode = new CodeExecutor(nodeUrl);
+            var re = executecode.runSync("login('admin','123456');select max(price),min(price),max(server_time),max(amount),min(amount) from loadTable('dfs://huobiDB', 'tick') where product = '" + $("#txtProduct").val() + "', server_time between pair(" + dstart.Format('yyyy.MM.dd hh:mm:ss.SSS') + "," + dend.Format('yyyy.MM.dd hh:mm:ss.SSS') + ")");
+            console.log("select max(price),min(price),max(server_time),max(amount),min(amount) from loadTable('dfs://huobiDB', 'tick') where product = '" + $("#txtProduct").val() + "', server_time between pair(" + dstart.Format('yyyy.MM.dd hh:mm:ss.SSS') + "," + dend.Format('yyyy.MM.dd hh:mm:ss.SSS') + ")");
+            console.log(re.object[0].value);
+            var maxVal = re.object[0].value[0].value[0];
+            var minVal = re.object[0].value[1].value[0];
+            var maxTime = re.object[0].value[2].value[0];
+            var maxAmount = re.object[0].value[3].value[0];
+            var minAmount = re.object[0].value[4].value[0];
+
+            myChart.setOption({
+                yAxis: [{
+                    min: minVal,
+                    max: maxVal
+                }, {
+                    min: minAmount,
+                    max: maxAmount
+                }]
+            });
+            myChart.on("click", function (param) {
+                if (isFinished) {
+                    var hz = new Date(param.name);
+                    hz = dateAdd(hz, "second", 1);
+                    fillHistoryGrid(hz.Format("yyyy.MM.dd hh:mm:ss"));
+                }
+            });
+            data = [];
+            amount = [];
+
+            //replace variable
+            var script = $("#txtScript").val();
+            script = script.replace(/\[filter_tick_product\]/g, "product='" + $("#txtProduct").val() + "', server_time between pair(" + dstart.Format("yyyy.MM.dd hh:mm:ss.SSS") + "," + maxTime + ")");
+            script = script.replace("[filter_order_product]", "product='" + $("#txtProduct").val() + "', server_time between pair(" + dstart.Format("yyyy.MM.dd hh:mm:ss.SSS") + "," + maxTime + ")");
+
+            script = script.replace("[cutString]", dstart.Format("hh:mm:ss.SSS") + ".." + dend.Format("hh:mm:ss.SSS") + "," + cutNumber.toString())
+            // console.log(script);
+
+            executecode.run(script + ";replayData(tick , orderbook , " + $("#txtRate").val() + ")", function (re) {
+                if (re.resultCode == "0") {
+                    currentJobId = re.object[0].value;
+                    console.log(currentJobId);
+                    gridTimer = setInterval(fillGrid, 1000);
+                    chartTimer = setInterval(fillChart, 1000, myChart);
+                    $("#btn_run").attr("disabled", true);
+                    $("#btn_stop").attr("disabled", false);
+                    $("#txtRate").attr("disabled", true);
+                    $("#txtDateTime").attr("disabled", true);
+                    $("#txtDuration").attr("disabled", true);
+                    $("#txtProduct").attr("disabled", true);
+                } else {
+                    alert(re.msg);
+                }
+            });
+        });
+
+        $("#btn_stop").bind("click", function () {
+            isFinished = true;
+            var executecode = new CodeExecutor(nodeUrl);
+            executecode.run("cancelJob('" + currentJobId + "')", function (re) {
+                if (re.resultCode == "0") {
+                    clearInterval(gridTimer);
+                    clearInterval(chartTimer);
+                    currentTimeStamp = $("#txtDateTime").val();
+                    $("#btn_run").attr("disabled", false);
+                    $("#btn_stop").attr("disabled", true);
+                    $("#txtRate").attr("disabled", false);
+                    $("#txtDateTime").attr("disabled", false);
+                    $("#txtDuration").attr("disabled", false);
+                    $("#txtProduct").attr("disabled", false);
+                } else {
+                    alert(re.msg);
+                }
+
+            });
+        });
+
+        anchor = [
+            { name: dstart.Format("yyyy/MM/dd hh:mm:ss"), value: [dstart.Format("yyyy/MM/dd hh:mm:ss"), 0] },
+            { name: dend.Format("yyyy/MM/dd hh:mm:ss"), value: [dend.Format("yyyy/MM/dd hh:mm:ss"), 0] }
+        ];
+
+        //line chart 
+        myChart = echarts.init(document.getElementById('echartMain'));
+        var option = {
+            // title:{
+            //     text: $("#txtProduct").val() + " Price Chart"
+            // },
+            grid: {
+                borderWidth: 1
+            },
+            // legend: {
+            //     data: ['buy price', 'sell price', 'buy amount', 'sell amount']
+            // },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    animation: false
+                },
+                formatter: function (param) {
+                    var re = ""
+                    param.forEach(e => {
+                        if (e.seriesName == "sell price")
+                            c = "color: pink"
+                        else
+                            c = "color: palegreen"
+                        re += e.name + " <font style='" + c + "'>" + e.seriesName + " " + e.value[1] + "</font><br>"
+                    });
+                    // console.log(param);
+                    return re;
+                }
+            },
+            xAxis: {
+                type: "time",
+            },
+            yAxis: [
+                {
+                    name: "price",
+                    type: 'value',
+                    scale: true,
+                    splitLine: {     
+                        "show": false
+                    }
+                }, {
+                    name: "amount",
+                    type: 'value',
+                    scale: true,
+                    splitLine: {     
+                        "show": false
+                    }
+                }
+            ],
+            series: [{
+                name: 'price',
+                type: 'line',
+                yAxisIndex: 0,
+                smooth: true,
+                data: []
+            },
+            {
+                name: 'amount',
+                type: 'line',
+                yAxisIndex: 1,
+                smooth: true,
+                data: []
+            },
+             {
+                name: 'anchor',
+                type: 'line',
+                yAxisIndex: 0,
+                showSymbol: false,
+                data: anchor,
+                itemStyle: { normal: { opacity: 0 } },
+                lineStyle: { normal: { opacity: 0 } }
+            }
+            ]
+        };
+        myChart.setOption(option);
+    });
+
+    Date.prototype.Format = function (formatStr) {
+        var str = formatStr;
+        var Week = ['日', '一', '二', '三', '四', '五', '六'];
+
+        str = str.replace(/yyyy|YYYY/, this.getFullYear());
+        str = str.replace(/yy|YY/, (this.getYear() % 100) > 9 ? (this.getYear() % 100).toString() : '0' + (this.getYear() % 100));
+
+        str = str.replace(/MM/, (this.getMonth() + 1) > 9 ? (this.getMonth() + 1).toString() : '0' + (this.getMonth() + 1));
+        str = str.replace(/M/g, this.getMonth());
+
+        str = str.replace(/w|W/g, Week[this.getDay()]);
+
+        str = str.replace(/dd|DD/, this.getDate() > 9 ? this.getDate().toString() : '0' + this.getDate());
+        str = str.replace(/d|D/g, this.getDate());
+
+        str = str.replace(/hh|HH/, this.getHours() > 9 ? this.getHours().toString() : '0' + this.getHours());
+        str = str.replace(/h|H/g, this.getHours());
+        str = str.replace(/mm/, this.getMinutes() > 9 ? this.getMinutes().toString() : '0' + this.getMinutes());
+        str = str.replace(/m/g, this.getMinutes());
+
+        str = str.replace(/ss|SS/, this.getSeconds() > 9 ? this.getSeconds().toString() : '0' + this.getSeconds());
+        str = str.replace(/s|S/g, this.getSeconds());
+        str = str.replace(/SSS/g, this.getMilliseconds());
+
+        return str;
+    }
+    function dateAdd(date, interval, units) {
+        var ret = new Date(date); //don't change original date
+        var checkRollover = function () { if (ret.getDate() != date.getDate()) ret.setDate(0); };
+        switch (interval.toLowerCase()) {
+            case 'year': ret.setFullYear(ret.getFullYear() + units); checkRollover(); break;
+            case 'quarter': ret.setMonth(ret.getMonth() + 3 * units); checkRollover(); break;
+            case 'month': ret.setMonth(ret.getMonth() + units); checkRollover(); break;
+            case 'week': ret.setDate(ret.getDate() + 7 * units); break;
+            case 'day': ret.setDate(ret.getDate() + units); break;
+            case 'hour': ret.setTime(ret.getTime() + units * 3600000); break;
+            case 'minute': ret.setTime(ret.getTime() + units * 60000); break;
+            case 'second': ret.setTime(ret.getTime() + units * 1000); break;
+            default: ret = undefined; break;
+        }
+        return ret;
+    }
+</script>
+
+</html>
