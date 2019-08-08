@@ -128,7 +128,23 @@ loopLoadTick(tb, "/hdd/data/tick-processed")
 
 ![image](https://github.com/dolphindb/Tutorials_CN/blob/master/images/replay/v.gif?raw=true)
 
-#### 6. 注意事项
+#### 6. 使用docker快速体验回放功能
+我们提供了一个包含DolphinDB Server以及演示数据的docker容器，并打包成tar文件提供下载。用户仅需要[安装docker环境](https://docs.docker.com/install/)，[下载](http://www.dolphindb.com/downloads/cryptocurr_replay.tar.gz)打包文件，运行下面的命令就可以快速完成演示环境部署。
+
+```bash
+gunzip cryptocurr_replay.tar.gz
+##docker若没有赋予非管理访问权限，可以使用 sudo docker
+docker import cryptocurr_replay.tar ddb/replay:v1
+##生成并启动容器
+docker run -dt -p 8888:8848 --name replay1 ddb/replay:v1 /bin/bash /dolphindb/start.sh
+
+```
+
+启动容器后，docker内DolphinDB的访问端口被映射到宿主机8888端口，打开浏览器访问`http://[宿主机ip]:8888/replay.html`，进入到回放演示界面。
+
+为了控制docker容器大小，方便下载，演示数据仅包含加密货币编号为`ETHUSDT,ETHBTC,BTCUSDT` 的交易数据，日期为`2018.09.17`一天。
+
+#### 7. 注意事项
 
 * 本案例当前仅限单用户使用，不支持多用户同时回放。
 * 为了简化操作，数据库名称和数据库用户信息均固化在网页中，若有需要请自行修改replay.html文件
