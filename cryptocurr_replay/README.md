@@ -17,7 +17,7 @@ DolphinDB支持将多个分布式表同步回放并发布到流数据表。基�
 #### 2. 部署DolphinDB节点
 请访问[DolphinDB官网](https://www.dolphindb.cn/downloads.html)，下载最新版本DolphinDB。具体部署的可以参考[教程](https://github.com/dolphindb/Tutorials_CN/blob/master/single_machine_cluster_deploy.md)中的单机集群方式部署。
 
-通过GUI连接集群中任意一个数据节点作为客户端节点，本文中使用 `[host]`,`[port]`,`[nodeAlias]`来分别代表此节点的IP, 端口，别名
+通过GUI连接集群中任意一个数据节点作为客户端节点，本文中使用 `[host]`,`[port]`,`[nodeAlias]`来分别代表此节点的IP, 端口，别名。
 #### 3. 下载盘口和逐笔交易数据
 本案例的使用的是火币研究院提供的加密货币交易数据，数据获取方式参考[火币数据API](https://huobiapi.github.io/docs/spot/v1/cn/), 获取数据的示例代码可以参考 [python 示例代码](https://github.com/huobiapi/Futures-Python-demo) | [java 示例代码](https://github.com/huobiapi/Futures-Java-demo)。
 #### 4. 导入数据到DolphinDB
