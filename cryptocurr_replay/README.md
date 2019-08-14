@@ -166,7 +166,7 @@ addFunctionView(replayData);
 ![image](https://github.com/dolphindb/Tutorials_CN/blob/master/images/replay/v.gif?raw=true)
 
 #### 6. 使用docker快速体验回放功能
-我们提供了一个包含DolphinDB Server以及演示数据的docker容器，并打包成tar文件提供下载。用户仅需要[安装docker环境](https://docs.docker.com/install/)，[下载](https://www.dolphindb.cn/downloads/cryptocurr_replay.tar.gz)打包文件，运行下面的命令就可以快速完成演示环境部署。
+我们提供了一个包含DolphinDB Server以及演示数据的docker容器，并打包成tar文件提供下载。用户仅需要[安装docker环境](https://docs.docker.com/install/)，[下载](http://www.dolphindb.cn/downloads/cryptocurr_replay.tar.gz)打包文件，运行下面的命令就可以快速完成演示环境部署。
 
 ```bash
 gunzip cryptocurr_replay.tar.gz
