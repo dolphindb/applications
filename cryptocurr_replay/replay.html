@@ -118,37 +118,7 @@
 
                         </div>
                         <div class="btn-group" role="group" aria-label="...">
-                            <input class="form-control" id="txtScript" type="hidden" value="
-                                            def copySchema(tbObj){
-                                                sch = select name,typeString as type from  tbObj.schema().colDefs;
-                                                return streamTable(100:0, sch.name, sch.type);
-                                            }
-                                            
-                                            login('admin', '123456');
-                                            tick = loadTable('dfs://huobiDB', 'tick');
-                                            orderbook = loadTable('dfs://huobiDB', 'orderBook');
-                                            
-                                            share  copySchema(orderbook) as outOrder;
-                                            share copySchema(tick) as outTick;
-                                            enableTablePersistence(outOrder, true,true, 100000);
-                                            enableTablePersistence(outTick, true,true, 100000);
-                                            clearTablePersistence(outOrder);
-                                            clearTablePersistence(outTick);
-                                            
-                                            share copySchema(orderbook) as outOrder;
-                                            share copySchema(tick) as outTick;
-                                            enableTablePersistence(outOrder, true,true, 100000);
-                                            enableTablePersistence(outTick, true,true, 100000);
-                                            
-                                            def replayData(tick , orderbook,rate ){
-                                                endTime = exec max(server_time) from tick where [filter_tick_product]
-                                                sqlTick = <select * from tick where [filter_tick_product]>;
-                                                sqlOrder = <select * from orderbook where [filter_order_product]>;
-                                                trs = cutPoints([cutString]);
-                                                rds = replayDS(sqlTick, `server_time , , trs);
-                                                rds2 = replayDS(sqlOrder,`server_time , , trs);
-                                                return submitJob('replay_huobi','replay_huobi',  replay,  [rds,rds2],  [`outTick,`outOrder],`server_time ,, rate);
-                                            }" />
+                            
                         </div>
                     </div>
                 </div>
@@ -272,7 +242,7 @@
     function fillGrid1(tb) {
         var rows = [];
         if (tb.size == "0") return rows;
-        //select top 1 *,second(server_time) as time from outOrder order by server_time desc
+
         var server_time = tb.value[1].value[0];
         for (var i = 0; i < 10; i++) {
             var buy_price_index = i + 2;
@@ -342,17 +312,25 @@
     var data = [];
     var amount = [];
     var currentTimeStamp = $("#txtDateTime").val();
+    var lastTimeStamp ;
     var anchor;
+    var stopCount = 0;
     function fillChart(chart) {
         if (typeof (currentTimeStamp) == "undefined")
             currentTimeStamp = $("#txtDateTime").val();
-       
+        if(currentTimeStamp == lastTimeStamp){
+            stopCount ++;
+        }else{
+            stopCount = 0;
+        }
+        if(stopCount>5){
+            $("#btn_stop").click();
+        }
         var sql = "select server_time as second_time,server_time, price as buy_price, amount from outTick where server_time>" + currentTimeStamp;
-
-        $("#txtServerTime").val(currentTimeStamp);
-
+       
         var executecode = new CodeExecutor(nodeUrl);
         executecode.run(sql, function (re) {
+            lastTimeStamp = currentTimeStamp;
             getTimeData(data, amount, re);
             chart.setOption({
                     series: [{
@@ -390,7 +368,12 @@
         });
 
         $("#btn_run").bind("click", function () {
+            //initail global variable
             isFinished = false;
+            data = [];
+            amount = [];
+            stopCount = 0;
+
             dstart = new Date($("#txtDateTime").val());
             var duration = $("#txtDuration").val();
             var min = parseInt(duration);
@@ -402,8 +385,6 @@
             ];
             var executecode = new CodeExecutor(nodeUrl);
             var re = executecode.runSync("login('admin','123456');select max(price),min(price),max(server_time),max(amount),min(amount) from loadTable('dfs://huobiDB', 'tick') where product = '" + $("#txtProduct").val() + "', server_time between pair(" + dstart.Format('yyyy.MM.dd hh:mm:ss.SSS') + "," + dend.Format('yyyy.MM.dd hh:mm:ss.SSS') + ")");
-            console.log("select max(price),min(price),max(server_time),max(amount),min(amount) from loadTable('dfs://huobiDB', 'tick') where product = '" + $("#txtProduct").val() + "', server_time between pair(" + dstart.Format('yyyy.MM.dd hh:mm:ss.SSS') + "," + dend.Format('yyyy.MM.dd hh:mm:ss.SSS') + ")");
-            console.log(re.object[0].value);
             var maxVal = re.object[0].value[0].value[0];
             var minVal = re.object[0].value[1].value[0];
             var maxTime = re.object[0].value[2].value[0];
@@ -426,18 +407,8 @@
                     fillHistoryGrid(hz.Format("yyyy.MM.dd hh:mm:ss"));
                 }
             });
-            data = [];
-            amount = [];
 
-            //replace variable
-            var script = $("#txtScript").val();
-            script = script.replace(/\[filter_tick_product\]/g, "product='" + $("#txtProduct").val() + "', server_time between pair(" + dstart.Format("yyyy.MM.dd hh:mm:ss.SSS") + "," + maxTime + ")");
-            script = script.replace("[filter_order_product]", "product='" + $("#txtProduct").val() + "', server_time between pair(" + dstart.Format("yyyy.MM.dd hh:mm:ss.SSS") + "," + maxTime + ")");
-
-            script = script.replace("[cutString]", dstart.Format("hh:mm:ss.SSS") + ".." + dend.Format("hh:mm:ss.SSS") + "," + cutNumber.toString())
-            // console.log(script);
-
-            executecode.run(script + ";replayData(tick , orderbook , " + $("#txtRate").val() + ")", function (re) {
+            executecode.run("login('admin','123456');replayData('" + $("#txtProduct").val() + "'," + dstart.Format("yyyy.MM.dd hh:mm:ss") + ", " + duration + "," + $("#txtRate").val() + ")", function (re) {
                 if (re.resultCode == "0") {
                     currentJobId = re.object[0].value;
                     console.log(currentJobId);
@@ -484,15 +455,9 @@
         //line chart 
         myChart = echarts.init(document.getElementById('echartMain'));
         var option = {
-            // title:{
-            //     text: $("#txtProduct").val() + " Price Chart"
-            // },
             grid: {
                 borderWidth: 1
             },
-            // legend: {
-            //     data: ['buy price', 'sell price', 'buy amount', 'sell amount']
-            // },
             tooltip: {
                 trigger: 'axis',
                 axisPointer: {

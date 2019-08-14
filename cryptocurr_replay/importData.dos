@@ -12,10 +12,6 @@ def createOrderBook(){
 	return db.createPartitionedTable(orderData, `orderBook, `server_time`product)
 }
 
-
-
-
-
 def createTick(){
 	tick = table(100:0, `aggregate_ID`server_time`price`amount`buy_or_sell`first_trade_ID`last_trade_ID`product , [INT,TIMESTAMP,DOUBLE,DOUBLE,CHAR,INT,INT,SYMBOL])
 	db = database("dfs://huobiDB")
