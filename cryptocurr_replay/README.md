@@ -118,32 +118,32 @@ loopLoadTick(tb, "/hdd/data/tick-processed")
 ```python
 def replayData(productCode, startTime, length, rate){
 	login('admin', '123456');
-      tick = loadTable('dfs://huobiDB', 'tick');
-      orderbook = loadTable('dfs://huobiDB', 'orderBook');
+    tick = loadTable('dfs://huobiDB', 'tick');
+    orderbook = loadTable('dfs://huobiDB', 'orderBook');
 
 	schTick = select name,typeString as type from  tick.schema().colDefs;
 	schOrderBook = select name,typeString as type from  orderbook.schema().colDefs;
 	
-      share(streamTable(100:0, schOrderBook.name, schOrderBook.type), `outOrder);
-      share(streamTable(100:0, schTick.name, schTick.type), `outTick);
-      enableTablePersistence(objByName(`outOrder), true,true, 100000);
-      enableTablePersistence(objByName(`outTick), true,true, 100000);
-      clearTablePersistence(objByName(`outOrder));
-      clearTablePersistence(objByName(`outTick));
+    share(streamTable(100:0, schOrderBook.name, schOrderBook.type), `outOrder);
+    share(streamTable(100:0, schTick.name, schTick.type), `outTick);
+    enableTablePersistence(objByName(`outOrder), true,true, 100000);
+    enableTablePersistence(objByName(`outTick), true,true, 100000);
+    clearTablePersistence(objByName(`outOrder));
+    clearTablePersistence(objByName(`outTick));
                                                 
-      share(streamTable(100:0, schOrderBook.name, schOrderBook.type), `outOrder);
-      share(streamTable(100:0, schTick.name, schTick.type), `outTick);
-      enableTablePersistence(objByName(`outOrder), true,true, 100000);
-      enableTablePersistence(objByName(`outTick), true,true, 100000);
+    share(streamTable(100:0, schOrderBook.name, schOrderBook.type), `outOrder);
+    share(streamTable(100:0, schTick.name, schTick.type), `outTick);
+    enableTablePersistence(objByName(`outOrder), true,true, 100000);
+    enableTablePersistence(objByName(`outTick), true,true, 100000);
 
 	endTime = temporalAdd(startTime, length, "m")
-      sqlTick = sql(sqlCol("*"), tick,  [<product=productCode>, <server_time between timestamp(pair(startTime, endTime))>]);
-      sqlOrder = sql(sqlCol("*"), orderbook,  [<product=productCode>, <server_time between timestamp(pair(startTime, endTime))>]);
-      cutCount = length * 60 / 20
-      trs = cutPoints(timestamp(startTime..endTime), cutCount);
-      rds = replayDS(sqlTick, `server_time , , trs);
-      rds2 = replayDS(sqlOrder, `server_time , , trs);
-      return submitJob('replay_huobi','replay_huobi',  replay,  [rds,rds2],  [`outTick,`outOrder],`server_time ,, rate);
+    sqlTick = sql(sqlCol("*"), tick,  [<product=productCode>, <server_time between timestamp(pair(startTime, endTime))>]);
+    sqlOrder = sql(sqlCol("*"), orderbook,  [<product=productCode>, <server_time between timestamp(pair(startTime, endTime))>]);
+    cutCount = length * 60 / 20
+    trs = cutPoints(timestamp(startTime..endTime), cutCount);
+    rds = replayDS(sqlTick, `server_time , , trs);
+    rds2 = replayDS(sqlOrder, `server_time , , trs);
+    return submitJob('replay_huobi','replay_huobi',  replay,  [rds,rds2],  [`outTick,`outOrder],`server_time ,, rate);
 }
 
 addFunctionView(replayData);
@@ -166,7 +166,7 @@ addFunctionView(replayData);
 ![image](https://github.com/dolphindb/Tutorials_CN/blob/master/images/replay/v.gif?raw=true)
 
 #### 6. 使用docker快速体验回放功能
-我们提供了一个包含DolphinDB Server以及演示数据的docker容器，并打包成tar文件提供下载。用户仅需要[安装docker环境](https://docs.docker.com/install/)，[下载](http://www.dolphindb.cn/downloads/cryptocurr_replay.tar.gz)打包文件，运行下面的命令就可以快速完成演示环境部署。
+我们提供了一个包含DolphinDB Server以及演示数据的docker容器，并打包成tar文件提供下载。用户仅需要[安装docker环境](https://docs.docker.com/install/)，[下载](https://www.dolphindb.cn/downloads/cryptocurr_replay.tar.gz)打包文件，运行下面的命令就可以快速完成演示环境部署。
 
 ```bash
 gunzip cryptocurr_replay.tar.gz
