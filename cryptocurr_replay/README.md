@@ -117,12 +117,12 @@ loopLoadTick(tb, "/hdd/data/tick-processed")
 
 ```python
 def replayData(productCode, startTime, length, rate){
-	login('admin', '123456');
+    login('admin', '123456');
     tick = loadTable('dfs://huobiDB', 'tick');
     orderbook = loadTable('dfs://huobiDB', 'orderBook');
 
-	schTick = select name,typeString as type from  tick.schema().colDefs;
-	schOrderBook = select name,typeString as type from  orderbook.schema().colDefs;
+    schTick = select name,typeString as type from  tick.schema().colDefs;
+    schOrderBook = select name,typeString as type from  orderbook.schema().colDefs;
 	
     share(streamTable(100:0, schOrderBook.name, schOrderBook.type), `outOrder);
     share(streamTable(100:0, schTick.name, schTick.type), `outTick);
@@ -136,7 +136,7 @@ def replayData(productCode, startTime, length, rate){
     enableTablePersistence(objByName(`outOrder), true,true, 100000);
     enableTablePersistence(objByName(`outTick), true,true, 100000);
 
-	endTime = temporalAdd(startTime, length, "m")
+    endTime = temporalAdd(startTime, length, "m")
     sqlTick = sql(sqlCol("*"), tick,  [<product=productCode>, <server_time between timestamp(pair(startTime, endTime))>]);
     sqlOrder = sql(sqlCol("*"), orderbook,  [<product=productCode>, <server_time between timestamp(pair(startTime, endTime))>]);
     cutCount = length * 60 / 20
@@ -181,6 +181,14 @@ docker run -dt -p 8888:8848 --name replay1 ddb/replay:v1 /bin/bash /dolphindb/st
 
 为了控制docker容器大小，方便下载，演示数据仅包含加密货币编号为`ETHUSDT,ETHBTC,BTCUSDT` 的交易数据，日期为`2018.09.17`一天。
 
+注意：因为内置的license文件会过期, 需要从官网下载最新的社区版license替换。下载社区版解压后进入server目录下，拷贝dolphindb.lic文件覆盖docker中的/dolphindb/目录下同名文件
+```
+sudo docker cp ./dolphindb.lic replay1:/dolphindb/dolphindb.lic
+```
+重启docker
+```
+sudo docker restart replay1
+```
 #### 7. 注意事项
 
 * 本案例当前仅限单用户使用，不支持多用户同时回放。
