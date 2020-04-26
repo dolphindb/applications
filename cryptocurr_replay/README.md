@@ -106,6 +106,7 @@ def loopLoadOrderBook(mutable tb, path){
 }
 
 login("admin","123456")
+createDB()
 tb = createOrderBook()
 loopLoadOrderBook(tb, "/hdd/data/orderBook-processed")
 tb = createTick()
